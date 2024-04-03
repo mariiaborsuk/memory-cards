@@ -1,13 +1,9 @@
 import {useState, useEffect} from "react";
-import {useContext} from "react";
-import gameContext from "../context/Context";
-import Card from "./Card";
 function Game(){
-  let [transform, setTransform]=useState([]);
   let[clickedUrl, setUrl]=useState([])
 let [removed, setRemoved]=useState([]);
 let [score,setScore]=useState(0);
-let [loaded, setLoaded]=useState(false)
+
 
 
   function getImages(){
@@ -26,16 +22,17 @@ let [loaded, setLoaded]=useState(false)
 
   }
   function randomiser(size, min, max){
+  console.log("Randomiser")
     let nums=new Set;
     while(nums.size!==size){
       nums.add(Math.floor(Math.random()*((max+1)-min)+min));
     }
     return [...nums]
   }
-function checkCards(){
+function checkCards(cellsToShow){
+  console.log("ckeckedCards")
   let cardsAr=document.getElementsByClassName("card");
   if(cardsAr){
-  let cellsToShow=getImages();
     cellsToShow.forEach((el)=>{
       for(let card of cardsAr){
         if(el.firstCell==card.id||el.secondCell==card.id){
@@ -64,7 +61,7 @@ useEffect(()=>{
       i++;
     }
 
-checkCards();
+checkCards(getImages());
   }
   if(document.readyState==="complete"){
     onPageLoad();
@@ -83,18 +80,18 @@ console.log("clicked url chANGED",clickedUrl)
 showImages(clickedUrl)
   }
 if(clickedUrl.length==2){
-  setTimeout(()=>{
     hideImages(clickedUrl)
     setUrl([]);
     document.getElementById("board").disabled = false;
 
-  },500)
+
 }
 
 
 
 },[clickedUrl])
 function showImages(ar){
+  console.log("Show Images()")
 
   ar.forEach((item)=>{
     console.log("showImage", item)
@@ -111,6 +108,7 @@ function hideImages(ar){
   }
 }
   function clickCard(event){
+  console.log("clickedCard()")
   event.preventDefault()
     if(event.target.className.includes("card") && !removed.includes(event.target.id)){
       switch(clickedUrl.length){
@@ -190,19 +188,6 @@ function hideImages(ar){
         }
       }
 
-
-
-
-  function putPictures(ar){
-    let cards = document.getElementsByClassName("card");
-    for(let card of cards){
-      for(let i=0; ar.length>i;i++){
-        if(ar[i].firstCell==card.id && ar[i].secondCell==card.id){
-          card.style.backgroundImage=`url${ar[i].url}`
-        }
-      }
-    }
-  }
 
 
 
