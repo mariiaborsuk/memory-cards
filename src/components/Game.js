@@ -1,14 +1,29 @@
 import {useState, useEffect} from "react";
+import Modal from "./Modal";
 function Game(){
   let[clickedUrl, setUrl]=useState([])
 let [removed, setRemoved]=useState([]);
 let [score,setScore]=useState(0);
-
-
-
+let [open, setOpen]=useState(false)
+  let [level,setLevel]=useState(1);
+let row=3;
+let cell=4;
+let [disabled, setDisabled]=useState(false)
+let quantity=row*cell;
+let cellNumber=quantity/2;
+function checkRemoved(){
+  if(removed.length===quantity){
+setOpen(true)
+  }
+}
+function nextLevel(){
+  document.getElementById("board").innerHTML="";
+    onPageLoad(row,cell);
+}
+console.log("CURRENT LEVEL IS: ", level, "CEll Number",cell, "ROW NUMBER", row)
   function getImages(){
-    let cellsAr=randomiser(8,1,83);
-    let idAr=randomiser(16,1,16);
+    let cellsAr=randomiser(cellNumber ,1,81);
+    let idAr=randomiser(quantity,1,quantity);
     let firstAr=idAr.slice(0,idAr.length/2);
     let secondAr=idAr.slice(idAr.length/2);
     let cellsObj=cellsAr.map((el,i)=>{
@@ -19,10 +34,8 @@ let [score,setScore]=useState(0);
       }
     })
     return cellsObj;
-
   }
   function randomiser(size, min, max){
-  console.log("Randomiser")
     let nums=new Set;
     while(nums.size!==size){
       nums.add(Math.floor(Math.random()*((max+1)-min)+min));
@@ -30,7 +43,6 @@ let [score,setScore]=useState(0);
     return [...nums]
   }
 function checkCards(cellsToShow){
-  console.log("ckeckedCards")
   let cardsAr=document.getElementsByClassName("card");
   if(cardsAr){
     cellsToShow.forEach((el)=>{
@@ -43,28 +55,44 @@ function checkCards(cellsToShow){
   }
 
 }
-
-console.log("clickedUrl",clickedUrl)
-useEffect(()=>{
-  function onPageLoad(){
+  function onPageLoad(row,cell){
     let i=0;
-
-    while(i<16){
+    while(i<row){
+      console.log("ROW")
       let board=document.getElementById("board");
-      board.style.backgroundColor="green"
-      let card=document.createElement("div");
-      card.style.backgroundColor="blue";
-      card.className="card";
-      card.id=i+1;
-      card.open=false;
-      board.appendChild(card);
+
+      let row=document.createElement("div");
+      row.className="row";
+      board.appendChild(row);
+      console.log("Row",row)
       i++;
     }
+    let rows=document.getElementsByClassName("row");
+    for(let row of rows){
+      for (let j=0; j<cell;j++){
+        let card=document.createElement("div");
+        card.className="card";
+        row.appendChild(card);
 
-checkCards(getImages());
+      }
+    }
+
+
+    let cards=document.getElementsByClassName("card");
+    let number=1;
+    for(let card of cards){
+      card.id=number;
+      number++;
+    }
+
+    checkCards(getImages());
+    timeOut();
   }
+console.log("clickedUrl",clickedUrl)
+useEffect(()=>{
+
   if(document.readyState==="complete"){
-    onPageLoad();
+    onPageLoad(row,cell);
 
   }
   else{
@@ -82,19 +110,26 @@ showImages(clickedUrl)
 if(clickedUrl.length==2){
     hideImages(clickedUrl)
     setUrl([]);
-    document.getElementById("board").disabled = false;
+setDisabled(true)
+  checkRemoved();
 
 
 }
 
 
 
-},[clickedUrl])
+},[clickedUrl]);
+function timeOut(){
+  let cards=document.getElementsByClassName("card");
+showImages([...cards]);
+setTimeout(()=>{
+  hideImages(clickedUrl);
+setDisabled(true)
+},5000)
+}
 function showImages(ar){
-  console.log("Show Images()")
 
   ar.forEach((item)=>{
-    console.log("showImage", item)
     let image="images/image"+item.url+".png"
     item.style.backgroundImage=`url(${image})`;
   })
@@ -102,15 +137,15 @@ function showImages(ar){
 function hideImages(ar){
   let cards=document.getElementsByClassName("card");
   for(let card of cards){
-    if(!ar.includes(card)){
+    if(!ar.includes(card) &&!removed.includes(card)){
       card.style.backgroundImage="";
     }
   }
 }
   function clickCard(event){
-  console.log("clickedCard()")
+  console.log(event.target,"CARD")
   event.preventDefault()
-    if(event.target.className.includes("card") && !removed.includes(event.target.id)){
+    if(event.target.className.includes("card") && !removed.includes(event.target.id)&&disabled===true){
       switch(clickedUrl.length){
         case 0:
         {
@@ -119,7 +154,6 @@ function hideImages(ar){
           urlAr.push(event.target);
 
           setUrl([...urlAr]);
-
 
         }
         break
@@ -134,66 +168,38 @@ function hideImages(ar){
               setRemoved(removedAr);
 
               setScore(score + 1);
-                event.target.style.backgroundImage = "";
-                event.target.style.backgroundColor = "green";
-                event.target.style.border = "green";
-                clickedUrl[0].style.backgroundImage = "";
-                clickedUrl[0].style.backgroundColor = "green";
-                clickedUrl[0].style.border = "green";
+                event.target.style.backgroundImage =`url(images/image${event.target.url}.png)` ;
+                event.target.style.opacity = 0.75;
+                // event.target.style.opacity = 0.75;
+                clickedUrl[0].style.backgroundImage =`url(images/image${clickedUrl[0].url}.png)`;
+                clickedUrl[0].style.opacity = 0.75;
               document.getElementById("board").disabled = true;
-
-              // setTimeout(()=>{
-              //   hideImages(urlAr)
-              // },500)
-
 
             } else {
               document.getElementById("board").disabled = true;
               let urlAr = [...clickedUrl, event.target];
               setUrl(urlAr);
-
-
-              // setTimeout(()=>{
-              //   hideImages(urlAr)
-              // // },500)
-
-
             }
 
           }
         }
         break
         case 2:{
-          hideImages(clickedUrl)
-        }
-        }
-        // break
-        // // case 2:
-        // {
-        //
-        //
-        //     setTimeout(()=>{
-        //       hideImages(clickedUrl)
-        //       document.getElementById("board").disabled=false;
-        //       setUrl([]);
-        //     },800)
-        //
-        //
-        //
-        //
-        //
-        //
-        // }
+          hideImages(clickedUrl);
+          document.getElementById("board").disabled = true;
 
         }
+        }
+        }
+    else{
+      return;
+    }
+
       }
-
-
-
-
-  return<div>
+  return<div className="relative">
+    <Modal open={open} load={onPageLoad} row={row}  cell={cell} setOpen={setOpen} level={level} setLevel={setLevel}/>
     <div>Your score is {score}</div>
-    <div id="board"  onClick={(event)=>{clickCard(event)}} >
+    <div id="board"   onClick={(event)=>{clickCard(event)}} >
 
 
 

@@ -4,7 +4,7 @@ import Game from "./components/Game";
 
 function App() {
   return (
-    <div className="App w-screen h-screen flex flex-row justify-content-center align-content-center" >
+    <div className="body" >
 
       <Game/>
     </div>
