@@ -1,27 +1,35 @@
 import {useState, useEffect} from "react";
+import {useContext} from "react";
+import {GameProvider} from "../context/Context";
+import gameContext from "../context/Context";
 import Modal from "./Modal";
 function Game(){
-  let[clickedUrl, setUrl]=useState([])
-let [removed, setRemoved]=useState([]);
-let [score,setScore]=useState(0);
-let [open, setOpen]=useState(false)
-  let [level,setLevel]=useState(1);
-let row=3;
-let cell=4;
-let [disabled, setDisabled]=useState(false)
-let quantity=row*cell;
-let cellNumber=quantity/2;
+  let [disabled, setDisabled]=useState(false);
+let{open,setOpen, win, setWin, rowNum, setRow, cellNum,
+  setCell,removed, setRemoved, clickedUrl, setUrl, score, level, setLevel, setScore }=useContext(gameContext)
+let [timer, setTimer]=useState();
 function checkRemoved(){
+  let quantity=rowNum*cellNum;
   if(removed.length===quantity){
-setOpen(true)
+    console.log("Removed==quantity", quantity)
+setWin(true);
+    setOpen(true);
+    setCell(cellNum+1);
+    setRow(rowNum+1);
+    onPageLoad(rowNum, cellNum);
+    setLevel(level+1);
+
+  }
+  else{
+    console.log("rows&Cells" ,rowNum,cellNum)
+    console.log("removed", removed,removed.length, quantity )
   }
 }
-function nextLevel(){
-  document.getElementById("board").innerHTML="";
-    onPageLoad(row,cell);
-}
-console.log("CURRENT LEVEL IS: ", level, "CEll Number",cell, "ROW NUMBER", row)
+
   function getImages(){
+    let quantity=rowNum*cellNum;
+    console.log("images quantity, rows, cells", quantity,rowNum,cellNum)
+    let cellNumber=quantity/2;
     let cellsAr=randomiser(cellNumber ,1,81);
     let idAr=randomiser(quantity,1,quantity);
     let firstAr=idAr.slice(0,idAr.length/2);
@@ -42,6 +50,23 @@ console.log("CURRENT LEVEL IS: ", level, "CEll Number",cell, "ROW NUMBER", row)
     }
     return [...nums]
   }
+  console.log("Level Game",level)
+  useEffect(()=>{
+if(win===true){
+  document.getElementById("board").innerHTML="";
+
+  console.log("CellNUm", cellNum, "Level", level);
+  setUrl([]);
+  setRemoved([]);
+  setOpen(true)
+  setScore(0);
+  setWin(false);
+  onPageLoad(rowNum, cellNum);
+  checkRemoved();
+
+}
+
+  },[level])
 function checkCards(cellsToShow){
   let cardsAr=document.getElementsByClassName("card");
   if(cardsAr){
@@ -53,31 +78,28 @@ function checkCards(cellsToShow){
       }
     })
   }
-
 }
-  function onPageLoad(row,cell){
+  function onPageLoad(num1, num2){
     let i=0;
-    while(i<row){
-      console.log("ROW")
-      let board=document.getElementById("board");
+  let board=document.getElementById("board");
+  console.log("Board",board)
+    while(i<num1){
 
       let row=document.createElement("div");
       row.className="row";
       board.appendChild(row);
-      console.log("Row",row)
+      console.log("Row", row)
       i++;
     }
     let rows=document.getElementsByClassName("row");
     for(let row of rows){
-      for (let j=0; j<cell;j++){
+      for (let j=0; j<num2; j++){
         let card=document.createElement("div");
         card.className="card";
         row.appendChild(card);
 
       }
     }
-
-
     let cards=document.getElementsByClassName("card");
     let number=1;
     for(let card of cards){
@@ -88,36 +110,30 @@ function checkCards(cellsToShow){
     checkCards(getImages());
     timeOut();
   }
-console.log("clickedUrl",clickedUrl)
 useEffect(()=>{
-
+  function loadFn(){
+    onPageLoad(rowNum,cellNum)
+  }
   if(document.readyState==="complete"){
-    onPageLoad(row,cell);
+  loadFn()
 
   }
   else{
-    window.addEventListener('load', onPageLoad,false);
-    return ()=>window.removeEventListener('load',onPageLoad)
+    window.addEventListener('load',loadFn,false);
+    return ()=>window.removeEventListener('load',loadFn)
   }
-
-
 },[]);
 useEffect(()=>{
-console.log("clicked url chANGED",clickedUrl)
   if(clickedUrl.length<=2){
-showImages(clickedUrl)
+showImages(clickedUrl);
   }
 if(clickedUrl.length==2){
-    hideImages(clickedUrl)
+    hideImages(clickedUrl);
+    checkRemoved();
     setUrl([]);
 setDisabled(true)
-  checkRemoved();
-
 
 }
-
-
-
 },[clickedUrl]);
 function timeOut(){
   let cards=document.getElementsByClassName("card");
@@ -128,7 +144,6 @@ setDisabled(true)
 },5000)
 }
 function showImages(ar){
-
   ar.forEach((item)=>{
     let image="images/image"+item.url+".png"
     item.style.backgroundImage=`url(${image})`;
@@ -143,7 +158,6 @@ function hideImages(ar){
   }
 }
   function clickCard(event){
-  console.log(event.target,"CARD")
   event.preventDefault()
     if(event.target.className.includes("card") && !removed.includes(event.target.id)&&disabled===true){
       switch(clickedUrl.length){
@@ -160,13 +174,13 @@ function hideImages(ar){
         case 1: {
           if (event.target.id !== clickedUrl[0].id) {
             console.log("case2", clickedUrl)
-            if (event.target.url == clickedUrl[0].url) {
+            if (event.target.url === clickedUrl[0].url) {
               let urlAr = [...clickedUrl, event.target];
               setUrl(urlAr);
 
               let removedAr = [...removed, event.target.id, clickedUrl[0].id];
               setRemoved(removedAr);
-
+              checkRemoved(rowNum,cellNum)
               setScore(score + 1);
                 event.target.style.backgroundImage =`url(images/image${event.target.url}.png)` ;
                 event.target.style.opacity = 0.75;
@@ -175,10 +189,12 @@ function hideImages(ar){
                 clickedUrl[0].style.opacity = 0.75;
               document.getElementById("board").disabled = true;
 
+
             } else {
               document.getElementById("board").disabled = true;
               let urlAr = [...clickedUrl, event.target];
               setUrl(urlAr);
+
             }
 
           }
@@ -187,6 +203,7 @@ function hideImages(ar){
         case 2:{
           hideImages(clickedUrl);
           document.getElementById("board").disabled = true;
+          checkRemoved();
 
         }
         }
@@ -197,7 +214,7 @@ function hideImages(ar){
 
       }
   return<div className="relative">
-    <Modal open={open} load={onPageLoad} row={row}  cell={cell} setOpen={setOpen} level={level} setLevel={setLevel}/>
+    <Modal />
     <div>Your score is {score}</div>
     <div id="board"   onClick={(event)=>{clickCard(event)}} >
 
