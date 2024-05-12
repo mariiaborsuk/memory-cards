@@ -6,8 +6,123 @@ import Modal from "./Modal";
 function Game(){
   let [disabled, setDisabled]=useState(false);
 let{open,setOpen, win, setWin, rowNum, setRow, cellNum,
-  setCell,removed, setRemoved, clickedUrl, setUrl, score, level, setLevel, setScore }=useContext(gameContext)
-let [timer, setTimer]=useState();
+  setCell,removed, setRemoved, clickedUrl, setUrl, score, level, setLevel, setScore }=useContext(gameContext);
+let [secs, setSecs]=useState(180);
+let [mins,setMins]=useState(3);
+let [fail,setFail]=useState(false)
+let [secToDisplay, setSecToDisplay]=useState("00");
+let [start, setStart]=useState(false);
+if(start==true){
+  setTimeout(()=>{
+
+    setSecs(secs-1);
+
+    let minutes=getMins();
+    let seconds=getSeconds();
+    setSecToDisplay(seconds);
+    setMins(minutes)
+
+
+    // let displayTimer=getTimer(mins,secToDisplay)
+    // setTimer(displayTimer)
+    console.log(mins,"min",secToDisplay,"seconds")
+
+
+  },1000);
+}
+
+console.log("min", mins, "seconds", secs,"timeer", secToDisplay)
+function checkFail(){
+  if(secs===0){
+    setFail(true);
+  }
+}
+console.log("Fail", fail)
+function getSeconds(){
+
+    let seconds=secs-(mins*60);
+    console.log("SECONDS", seconds)
+    if(seconds>0&&seconds<60){
+      return seconds
+    }
+    if(seconds==0){
+      let seconds0="00"
+      return seconds0;
+    }
+    if(seconds<10&&seconds>0){
+      let seconds9="0"+seconds;
+      return seconds9;
+    }
+    if(seconds==-1){
+      return"59"
+    }
+
+
+
+
+}
+    function getMins(){
+if(secs>0){
+  let minutes=Math.floor(secs/60);
+  return minutes
+}
+
+
+
+    }
+function putTime(){
+  let minutes=document.getElementById("minutes");
+  let seconds=document.getElementById("seconds");
+  if(mins>10){
+    minutes.innerText="0"+mins;
+  }
+if(secToDisplay<10){
+  seconds.innerText="0"+secToDisplay;
+}
+
+
+}
+//   startTimer();
+// function startTimer(){
+//
+// let min=3;
+// let secs=3*60;
+//   console.log("SetTimer",min,secs)
+// function decrement(){
+//   let minutes=document.getElementById("minutes");
+//   let seconds=document.getElementById("seconds");
+//   console.log("seconds div", seconds)
+//   if(Number(seconds.innerText)<=59){
+//     seconds.innerHTML=secs;
+//   }
+//   else{
+//     seconds.innerHTML=getSeconds();
+//     minutes.innerHTML=getMinutes();
+//
+//   }
+//   if(min<1){
+//     seconds.style.color="red"
+//   }
+//   if(min<0){
+// document.getElementById("time").value="time is out!!!";
+// minutes.innerHTML=0;
+// seconds.innerHTML=0;
+//   }
+//   else{
+//     secs=secs-1;
+//     setTimeout(()=>{decrement()},1000);
+//   }
+// }
+// function getMinutes(){
+// min=Math.floor(secs/60);
+//   return min
+// }
+// function getSeconds(){
+//   let seconds=secs-Math.round(min*60);
+//   return seconds
+// }
+// setTimeout(()=>{decrement()},1000)
+// }
 function checkRemoved(){
   let quantity=rowNum*cellNum;
   if(removed.length===quantity){
@@ -140,7 +255,8 @@ function timeOut(){
 showImages([...cards]);
 setTimeout(()=>{
   hideImages(clickedUrl);
-setDisabled(true)
+setDisabled(true);
+setStart(true);
 },5000)
 }
 function showImages(ar){
@@ -216,6 +332,7 @@ function hideImages(ar){
   return<div className="relative">
     <Modal />
     <div>Your score is {score}</div>
+    <div >Time:<span id="time">{mins}:{secToDisplay}</span> </div>
     <div id="board"   onClick={(event)=>{clickCard(event)}} >
 
 
