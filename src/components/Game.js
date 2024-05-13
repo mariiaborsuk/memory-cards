@@ -3,41 +3,45 @@ import {useContext} from "react";
 import {GameProvider} from "../context/Context";
 import gameContext from "../context/Context";
 import Modal from "./Modal";
+import Fail from "./Fail"
 function Game(){
   let [disabled, setDisabled]=useState(false);
 let{open,setOpen, win, setWin, rowNum, setRow, cellNum,
   setCell,removed, setRemoved, clickedUrl, setUrl, score, level, setLevel, setScore }=useContext(gameContext);
-let [secs, setSecs]=useState(180);
-let [mins,setMins]=useState(3);
+let [secs, setSecs]=useState(5);
+let [mins,setMins]=useState(0);
 let [fail,setFail]=useState(false)
 let [secToDisplay, setSecToDisplay]=useState("00");
 let [start, setStart]=useState(false);
+let timeout;
 if(start==true){
-  setTimeout(()=>{
-
-    setSecs(secs-1);
-
-    let minutes=getMins();
-    let seconds=getSeconds();
-    setSecToDisplay(seconds);
-    setMins(minutes)
-
-
-    // let displayTimer=getTimer(mins,secToDisplay)
-    // setTimer(displayTimer)
-    console.log(mins,"min",secToDisplay,"seconds")
-
-
-  },1000);
+  timeout=setTimeout(
+getTimer,1000);
 }
+function getTimer(){
+  setSecs(secs-1);
 
+  let minutes=getMins();
+  let seconds=getSeconds();
+  setSecToDisplay(seconds);
+  setMins(minutes)
+
+
+  // let displayTimer=getTimer(mins,secToDisplay)
+  // setTimer(displayTimer)
+  console.log(mins,"min",secToDisplay,"seconds");
+  checkFail();
+}
 console.log("min", mins, "seconds", secs,"timeer", secToDisplay)
 function checkFail(){
   if(secs===0){
     setFail(true);
+    clearTimeout(timeout);
+    setSecs(5);
+    setMins(0)
   }
 }
-console.log("Fail", fail)
+console.log("Fail@@@@@@@@@@@", fail)
 function getSeconds(){
 
     let seconds=secs-(mins*60);
@@ -80,6 +84,22 @@ if(secToDisplay<10){
   seconds.innerText="0"+secToDisplay;
 }
 
+
+}
+function resetLevel(){
+  setSecs(5);
+  setMins(0);
+  setSecToDisplay("00");
+  setStart(false);
+  setLevel(1);
+  setCell(3);
+  setRow(2);
+  console.log("ROW & Cell", rowNum,cellNum);
+  console.log("LEVEL is resetted")
+  setFail(false);
+  let board=document.getElementById("board");
+  board.innerHTML="";
+  onPageLoad(rowNum, cellNum);
 
 }
 //   startTimer();
@@ -331,6 +351,7 @@ function hideImages(ar){
       }
   return<div className="relative">
     <Modal />
+    <Fail fail={fail} setFail={setFail} reset={resetLevel}/>
     <div>Your score is {score}</div>
     <div >Time:<span id="time">{mins}:{secToDisplay}</span> </div>
     <div id="board"   onClick={(event)=>{clickCard(event)}} >
